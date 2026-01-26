@@ -1,5 +1,9 @@
-node_modules/
-dist/
-.env
-*.log
-.DS_Store
+# Ignore everything
+/*
+
+# Except these folders
+!/backend-ws/
+!/frontend-ws/
+
+# Except this file
+!.gitignore
