@@ -3,6 +3,9 @@ import axios from 'axios';
 import { io, Socket } from 'socket.io-client';
 import './ChatInterface.css';
 
+// @ts-ignore
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface Message {
   id: string;
   type: 'user' | 'ai' | 'system';
@@ -40,7 +43,7 @@ function ChatInterface() {
   // Initialize socket and session on mount
   useEffect(() => {
     // Initialize Socket
-    socketRef.current = io('http://localhost:3001');
+    socketRef.current = io(API_BASE_URL);
     
     socketRef.current.on('connect', () => {
       console.log('Connected to server via WebSocket');
@@ -130,7 +133,7 @@ function ChatInterface() {
 
   const initSession = async () => {
     try {
-      const response = await axios.post('http://localhost:3001/api/booking/session/init');
+      const response = await axios.post(`${API_BASE_URL}/api/booking/session/init`);
       const newSessionId = response.data.sessionId;
       setSessionId(newSessionId);
       setConversationState('waiting_phone');
@@ -250,7 +253,7 @@ function ChatInterface() {
     setMessages(prev => [...prev.filter(m => !m.awaitingPaymentRetry), userMsg]);
 
     try {
-      await axios.post('http://localhost:3001/api/booking/payment-action', {
+      await axios.post(`${API_BASE_URL}/api/booking/payment-action`, {
         orderId,
         action: 'retry'
       });
@@ -274,7 +277,7 @@ function ChatInterface() {
     setMessages(prev => [...prev.filter(m => !m.awaitingPaymentRetry), userMsg]);
 
     try {
-      await axios.post('http://localhost:3001/api/booking/payment-action', {
+      await axios.post(`${API_BASE_URL}/api/booking/payment-action`, {
         orderId,
         action: 'cancel'
       });
@@ -322,7 +325,7 @@ function ChatInterface() {
       };
       setMessages(prev => [...prev, aiResponse]);
 
-      const locationResponse = await axios.post('http://localhost:3001/api/booking/select-location', {
+      const locationResponse = await axios.post(`${API_BASE_URL}/api/booking/select-location`, {
         sessionId,
         locationIndex: locationIndex + 1  // Send 1-based index (1, 2, 3, etc.)
       });
@@ -401,7 +404,7 @@ function ChatInterface() {
 
         console.log('Sending login request with sessionId:', sessionId);
         
-        const loginResponse = await axios.post('http://localhost:3001/api/booking/login', {
+        const loginResponse = await axios.post(`${API_BASE_URL}/api/booking/login`, {
           sessionId,
           phone: userInput
         });
@@ -458,7 +461,7 @@ function ChatInterface() {
         };
         setMessages(prev => [...prev, aiResponse]);
 
-        const verifyResponse = await axios.post('http://localhost:3001/api/booking/verify-otp', {
+        const verifyResponse = await axios.post(`${API_BASE_URL}/api/booking/verify-otp`, {
           sessionId,
           otp: userInput
         });
@@ -504,7 +507,7 @@ function ChatInterface() {
           locIndex = 1; // Default to first location if invalid input
         }
 
-        const locationResponse = await axios.post('http://localhost:3001/api/booking/select-location', {
+        const locationResponse = await axios.post(`${API_BASE_URL}/api/booking/select-location`, {
           sessionId,
           locationIndex: locIndex
         });
@@ -533,7 +536,7 @@ function ChatInterface() {
         };
         setMessages(prev => [...prev, aiResponse]);
 
-        const parseResponse = await axios.post('http://localhost:3001/api/booking/parse', {
+        const parseResponse = await axios.post(`${API_BASE_URL}/api/booking/parse`, {
           text: userInput,
           sessionId
         });
@@ -554,7 +557,7 @@ function ChatInterface() {
         setMessages(prev => [...prev.filter(m => m.id !== aiResponse.id), confirmMessage]);
 
         // Start order
-        const orderResponse = await axios.post('http://localhost:3001/api/booking/start', {
+        const orderResponse = await axios.post(`${API_BASE_URL}/api/booking/start`, {
           ...orderDetails,
           sessionId
         });
