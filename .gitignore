@@ -1,0 +1,9 @@
+# Ignore everything
+/*
+
+# Except these folders
+!/backend-ws/
+!/frontend-ws/
+
+# Except this file
+!.gitignore
