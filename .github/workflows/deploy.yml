@@ -60,6 +60,8 @@ jobs:
 
       # STEP 3: Build and Sync Frontend to S3
       - name: Deploy Frontend
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }} # This injects the secret
         run: | 
           cd frontend-ws
           npm install
