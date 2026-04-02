@@ -33,7 +33,7 @@ jobs:
           TARGET: /home/ubuntu/app/backend-ws
           SOURCE: "backend-ws/"
 
-      # STEP 2: Install and Start Backend
+      # STEP 2: Install Node.js and Start Backend
       - name: Deploy Backend to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -41,15 +41,26 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Create folder and set permissions automatically
+            # 1. Install Node.js 20 if it's missing
+            if ! command -v node &> /dev/null; then
+              curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+              sudo apt-get install -y nodejs
+            fi
+
+            # 2. Create folder and fix permissions
             sudo mkdir -p /home/ubuntu/app/backend-ws
             sudo chown -R ubuntu:ubuntu /home/ubuntu/app
             
+            # 3. Navigate and Install dependencies
             cd /home/ubuntu/app/backend-ws
             npm install --production
-            # Restarts the app, or starts it if this is the first time
-            pm2 restart backend || pm2 start index.js --name "backend"
 
+            # 4. Start the app with PM2 (Installs PM2 if missing)
+            if ! command -v pm2 &> /dev/null; then
+              sudo npm install -g pm2
+            fi
+            pm2 restart backend || pm2 start index.js --name "backend"
+            
       # STEP 3: Build and Sync Frontend to S3
       - name: Deploy Frontend
         run: | 
