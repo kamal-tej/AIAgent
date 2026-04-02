@@ -4,6 +4,7 @@
 # Except these folders
 !/backend-ws/
 !/frontend-ws/
+!/.github/
 
 # Except this file
 !.gitignore
