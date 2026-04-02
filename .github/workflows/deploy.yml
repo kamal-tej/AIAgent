@@ -1,6 +1,6 @@
 name: Deploy on aws
 
-on: 
+on:
   push:
     branches: [main]
 
@@ -14,26 +14,16 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
 
-      - name: Configure AWS credentials 
+      - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }} 
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # STEP 1: Sync Backend Files to EC2
-      - name: Sync Backend files to EC2
-        uses: easingthemes/ssh-deploy@main
-        env:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
-          REMOTE_HOST: ${{ secrets.EC2_HOST }}
-          REMOTE_USER: ubuntu
-          TARGET: /home/ubuntu/app/backend-ws
-          SOURCE: "backend-ws/"
-
-      # STEP 2: Install Node.js, TypeScript tools, and Start Backend
+      # STEP 2: Install Node.js, TSX, and Start Backend
       - name: Deploy Backend to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -50,21 +40,22 @@ jobs:
             # 2. Fix permissions
             sudo mkdir -p /home/ubuntu/app/backend-ws
             sudo chown -R ubuntu:ubuntu /home/ubuntu/app
-            
+
             cd /home/ubuntu/app/backend-ws
-            
-            # 3. Install dependencies (including typescript and ts-node)
+
+            # 3. Install dependencies
             npm install
 
-            # 4. Install PM2 and TypeScript runners globally
+            # 4. Install PM2 and TSX globally
+            # Since your start script uses 'tsx', the server needs it globally
             if ! command -v pm2 &> /dev/null; then
-              sudo npm install -g pm2 ts-node typescript
+              sudo npm install -g pm2 tsx
             fi
 
-            # 5. Restart/Start the app using ts-node
-            # We delete the old process first to avoid "Namespace not found" errors
+            # 5. Restart/Start the app using your package.json 'start' script
             pm2 delete backend || true
-            pm2 start ./node_modules/.bin/ts-node --name "backend" -- --project tsconfig.json server.ts
+            pm2 start npm --name "backend" -- start
+            pm2 save
 
 
       # STEP 3: Build and Sync Frontend to S3
