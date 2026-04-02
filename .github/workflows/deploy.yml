@@ -11,6 +11,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Configure AWS credentials 
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -25,10 +30,10 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           REMOTE_HOST: ${{ secrets.EC2_HOST }}
           REMOTE_USER: ubuntu
-          TARGET: /home/ubuntu/app
+          TARGET: /home/ubuntu/app/backend-ws
           SOURCE: "backend-ws/"
 
-      # STEP 2: Run Backend Commands
+      # STEP 2: Install and Start Backend
       - name: Deploy Backend to EC2
         uses: appleboy/ssh-action@master
         with:
@@ -36,18 +41,20 @@ jobs:
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Ensure the directory exists first
-            mkdir -p /home/ubuntu/app/backend-ws 
+            # Create folder and set permissions automatically
+            sudo mkdir -p /home/ubuntu/app/backend-ws
+            sudo chown -R ubuntu:ubuntu /home/ubuntu/app
+            
             cd /home/ubuntu/app/backend-ws
-            npm install
-            # This will try to restart, and if it's the first time, it starts it
-            pm2 restart all || (npm install -g pm2 && pm2 start index.js --name "backend")
+            npm install --production
+            # Restarts the app, or starts it if this is the first time
+            pm2 restart backend || pm2 start index.js --name "backend"
 
-      # STEP 3: Deploy Frontend
+      # STEP 3: Build and Sync Frontend to S3
       - name: Deploy Frontend
         run: | 
           cd frontend-ws
           npm install
           npm run build
-          # Use your secret here instead of hardcoding
+          # Vite uses 'dist' folder by default
           aws s3 sync dist/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
