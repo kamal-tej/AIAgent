@@ -64,7 +64,8 @@ jobs:
             # 5. Restart/Start the app using ts-node
             # We delete the old process first to avoid "Namespace not found" errors
             pm2 delete backend || true
-            pm2 start ts-node -- -P tsconfig.json server.ts --name "backend"
+            pm2 start ./node_modules/.bin/ts-node -- --project tsconfig.json server.ts --name "backend"
+
 
       # STEP 3: Build and Sync Frontend to S3
       - name: Deploy Frontend
