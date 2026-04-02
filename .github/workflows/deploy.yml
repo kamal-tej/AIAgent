@@ -46,6 +46,8 @@ jobs:
             # 3. Install dependencies
             npm install
 
+            npx playwright install --with-deps chromium
+
             # 4. Install PM2 and TSX globally
             # Since your start script uses 'tsx', the server needs it globally
             if ! command -v pm2 &> /dev/null; then
