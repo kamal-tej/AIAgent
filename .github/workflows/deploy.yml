@@ -48,6 +48,8 @@ jobs:
 
             npx playwright install --with-deps chromium
 
+            sudo apt-get install -y xvfb
+
             # 4. Install PM2 and TSX globally
             # Since your start script uses 'tsx', the server needs it globally
             if ! command -v pm2 &> /dev/null; then
@@ -56,7 +58,8 @@ jobs:
 
             # 5. Restart/Start the app using your package.json 'start' script
             pm2 delete backend || true
-            pm2 start npm --name "backend" -- start
+            pm2 start "xvfb-run npm start" --name "backend"
+            
             pm2 save
 
 
