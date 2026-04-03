@@ -58,7 +58,7 @@ jobs:
 
             # 5. Restart/Start the app using your package.json 'start' script
             pm2 delete backend || true
-            pm2 start "xvfb-run npm start" --name "backend"
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} pm2 start "xvfb-run npm start" --name "backend"
             
             pm2 save
 
